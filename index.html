@@ -12,15 +12,30 @@
       padding: 20px;
     }
     h1 { font-size: 28px; margin-bottom: 20px; }
+
     .card {
       background: white;
       padding: 16px;
       margin-bottom: 12px;
       border-radius: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .altura { font-size: 20px; font-weight: bold; }
-    .time { font-size: 12px; opacity: .7; }
+
+    .altura {
+      font-size: 20px; 
+      font-weight: bold;
+    }
+
+    .time {
+      font-size: 14px;
+      opacity: .7;
+      margin-left: 20px;
+      white-space: nowrap;
+    }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -54,7 +69,7 @@
       Object.keys(data).forEach(id => {
         const j = data[id];
 
-        // Converter "2025-12-05 05:25:00" para formato válido
+        // Converter string para Date válido
         const date = new Date(j.time.replace(" ", "T"));
         const formatted = isNaN(date) ? j.time : date.toLocaleString();
 
@@ -62,8 +77,8 @@
         card.className = "card";
 
         card.innerHTML = `
-          <div class="altura">Altura: ${j.height} m</div>
-          <div class="time">Timestamp: ${formatted}</div>
+          <div class="altura">Altura: ${j.height} cm</div>
+          <div class="time">${formatted}</div>
         `;
 
         list.appendChild(card);
