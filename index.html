@@ -26,48 +26,47 @@
   <h1>Jumps</h1>
   <div id="list"></div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
-
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getDatabase, ref, onValue }
-      from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { initializeApp } 
+      from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDHP_5rzA9YUTPnH0fWxturT4I2BRFMnAE",
-    authDomain: "sistemasop-7043b.firebaseapp.com",
-    databaseURL: "https://sistemasop-7043b-default-rtdb.firebaseio.com",
-    projectId: "sistemasop-7043b",
-    storageBucket: "sistemasop-7043b.firebasestorage.app",
-    messagingSenderId: "125029414345",
-    appId: "1:125029414345:web:62b471910b8ddbbdb8e418",
-    measurementId: "G-80MGSL38J7"
-  };
+    import { 
+      getDatabase, ref, onValue 
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHP_5rzA9YUTPnH0fWxturT4I2BRFMnAE",
+      authDomain: "sistemasop-7043b.firebaseapp.com",
+      databaseURL: "https://sistemasop-7043b-default-rtdb.firebaseio.com",
+      projectId: "sistemasop-7043b",
+      storageBucket: "sistemasop-7043b.firebasestorage.app",
+      messagingSenderId: "125029414345",
+      appId: "1:125029414345:web:62b471910b8ddbbdb8e418",
+      measurementId: "G-80MGSL38J7"
+    };
 
-  const list = document.getElementById("list");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  const jumpsRef = ref(db, "jumps");
-  onValue(jumpsRef, (snapshot) => {
-    const data = snapshot.val();
-    list.innerHTML = "";
-    if (!data) return;
+    const list = document.getElementById("list");
 
-    Object.keys(data).forEach(id => {
-      const j = data[id];
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="altura">Altura: ${j.altura} m</div>
-        <div class="time">Timestamp: ${new Date(j.timestamp).toLocaleString()}</div>
-      `;
-      list.appendChild(card);
+    const jumpsRef = ref(db, "jumps");
+    onValue(jumpsRef, (snapshot) => {
+      const data = snapshot.val();
+      list.innerHTML = "";
+      if (!data) return;
+
+      Object.keys(data).forEach(id => {
+        const j = data[id];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="altura">Altura: ${j.altura} m</div>
+          <div class="time">Timestamp: ${new Date(j.timestamp).toLocaleString()}</div>
+        `;
+        list.appendChild(card);
+      });
     });
-  });
-</script>
+  </script>
 </body>
 </html>
