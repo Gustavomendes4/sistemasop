@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jumps Firebase</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,10 +23,11 @@
     .time { font-size: 12px; opacity: .7; }
   </style>
 
-  <!-- Firebase compat (100% sem erros de heartbeat) -->
+  <!-- Firebase compat (FUNCIONA EM SCRIPT NORMAL) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
+
 <body>
   <h1>Jumps</h1>
   <div id="list"></div>
@@ -43,11 +45,10 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     const list = document.getElementById("list");
 
-    db.ref("jumps").on("value", (snapshot) => {
-      const data = snapshot.val();
+    db.ref("jumps").on("value", (snap) => {
+      const data = snap.val();
       list.innerHTML = "";
       if (!data) return;
 
@@ -55,10 +56,12 @@
         const j = data[id];
         const card = document.createElement("div");
         card.className = "card";
+
         card.innerHTML = `
           <div class="altura">Altura: ${j.altura} m</div>
           <div class="time">Timestamp: ${new Date(j.timestamp).toLocaleString()}</div>
         `;
+
         list.appendChild(card);
       });
     });
