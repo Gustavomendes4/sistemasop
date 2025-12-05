@@ -11,7 +11,34 @@
       background: #f5f5f5;
       padding: 20px;
     }
+
     h1 { font-size: 28px; margin-bottom: 20px; }
+
+    .filtro-box {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filtro-box input {
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    .filtro-box button {
+      padding: 8px 14px;
+      cursor: pointer;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 8px;
+      font-size: 14px;
+    }
 
     .card {
       background: white;
@@ -25,17 +52,8 @@
       align-items: center;
     }
 
-    .altura {
-      font-size: 20px; 
-      font-weight: bold;
-    }
-
-    .time {
-      font-size: 14px;
-      opacity: .7;
-      margin-left: 20px;
-      white-space: nowrap;
-    }
+    .altura { font-size: 20px; font-weight: bold; }
+    .time { font-size: 14px; opacity: .7; white-space: nowrap; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -44,6 +62,18 @@
 
 <body>
   <h1>Jumps</h1>
+
+  <!-- FILTRO -->
+  <div class="filtro-box">
+    <label>Início:</label>
+    <input type="datetime-local" id="inicio">
+
+    <label>Fim:</label>
+    <input type="datetime-local" id="fim">
+
+    <button id="btnFiltrar">Filtrar</button>
+  </div>
+
   <div id="list"></div>
 
   <script>
@@ -59,17 +89,28 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const list = document.getElementById("list");
 
+    const list = document.getElementById("list");
+    const inicioInput = document.getElementById("inicio");
+    const fimInput = document.getElementById("fim");
+    const btnFiltrar = document.getElementById("btnFiltrar");
+
+    let fullData = {}; // Guarda todos os registros carregados
+
+    // LER DADOS DO FIREBASE
     db.ref("jumps").on("value", (snap) => {
-      const data = snap.val();
+      fullData = snap.val() || {};
+      renderList(fullData);
+    });
+
+    // FUNÇÃO PARA EXIBIR LISTA
+    function renderList(data) {
       list.innerHTML = "";
-      if (!data) return;
 
       Object.keys(data).forEach(id => {
         const j = data[id];
 
-        // Converter string para Date válido
+        // Convertendo a string "YYYY-MM-DD HH:MM:SS"
         const date = new Date(j.time.replace(" ", "T"));
         const formatted = isNaN(date) ? j.time : date.toLocaleString();
 
@@ -83,7 +124,30 @@
 
         list.appendChild(card);
       });
+    }
+
+    // FILTRAR
+    btnFiltrar.addEventListener("click", () => {
+      const inicio = inicioInput.value ? new Date(inicioInput.value).getTime() : null;
+      const fim = fimInput.value ? new Date(fimInput.value).getTime() : null;
+
+      const filtrado = {};
+
+      Object.keys(fullData).forEach(id => {
+        const j = fullData[id];
+        const t = new Date(j.time.replace(" ", "T")).getTime();
+
+        if (
+          (!inicio || t >= inicio) &&
+          (!fim || t <= fim)
+        ) {
+          filtrado[id] = j;
+        }
+      });
+
+      renderList(filtrado);
     });
+
   </script>
 </body>
 </html>
