@@ -12,7 +12,13 @@
       padding: 20px;
     }
 
-    h1 { margin-bottom: 10px; }
+    h1 { margin-bottom: 5px; }
+
+    #total {
+      font-size: 16px;
+      margin-bottom: 15px;
+      opacity: 0.8;
+    }
 
     #filters {
       margin-bottom: 20px;
@@ -60,6 +66,7 @@
 <body>
 
   <h1>Jumps</h1>
+  <div id="total">Total de saltos: 0</div>
 
   <!-- FILTROS -->
   <div id="filters">
@@ -88,14 +95,15 @@
 
     const list = document.getElementById("list");
     const loading = document.getElementById("loading");
+    const total = document.getElementById("total");
+
     let allJumps = [];
 
-    // Converte "2025-12-05 05:37:11" → Date válida
     function parseTimestamp(str) {
       return new Date(str.replace(" ", "T"));
     }
 
-    // CARREGA TODOS OS DADOS
+    // Carrega dados do Firebase
     db.ref("jumps").on("value", snap => {
       allJumps = [];
       list.innerHTML = "";
@@ -104,6 +112,7 @@
       const data = snap.val();
       if (!data) {
         loading.innerText = "Nenhum dado encontrado.";
+        total.innerText = "Total de saltos: 0";
         return;
       }
 
@@ -120,9 +129,10 @@
       render(allJumps);
     });
 
-    // RENDERIZA LISTA
+    // Exibe a lista
     function render(arr) {
       list.innerHTML = "";
+      total.innerText = "Total de saltos: " + arr.length;
 
       if (arr.length === 0) {
         list.innerHTML = "<p>Nenhum resultado.</p>";
@@ -134,7 +144,7 @@
         card.className = "card";
 
         card.innerHTML = `
-          <div class="altura">${j.height} cm</div>
+          <div class="altura">${j.height.toFixed(2)} cm</div>
           <div class="time">${j.time}</div>
         `;
 
@@ -142,7 +152,7 @@
       });
     }
 
-    // FILTRAR
+    // Filtrar
     function applyFilter() {
       const start = document.getElementById("start").value;
       const end = document.getElementById("end").value;
@@ -155,12 +165,14 @@
       const startDate = new Date(start);
       const endDate = new Date(end);
 
-      const filtered = allJumps.filter(j => j.dateObj >= startDate && j.dateObj <= endDate);
+      const filtered = allJumps.filter(j =>
+        j.dateObj >= startDate && j.dateObj <= endDate
+      );
 
       render(filtered);
     }
 
-    // REMOVER FILTRO
+    // Remover filtro
     function clearFilter() {
       document.getElementById("start").value = "";
       document.getElementById("end").value = "";
