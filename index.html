@@ -1,82 +1,106 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Jumps Firebase</title>
-
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
       padding: 20px;
     }
-
-    h1 { font-size: 28px; margin-bottom: 20px; }
+    h1 { font-size: 28px; margin-bottom: 12px; }
 
     .filtro-box {
-      margin-bottom: 20px;
-      padding: 15px;
+      margin-bottom: 16px;
+      padding: 12px;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .filtro-box input {
-      padding: 6px;
-      font-size: 14px;
-    }
-
+    .filtro-box label { font-size: 13px; color:#333; margin-right:4px; }
+    .filtro-box input { padding:6px 8px; font-size:14px; border-radius:6px; border:1px solid #ddd; }
     .filtro-box button {
-      padding: 8px 14px;
-      cursor: pointer;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 8px;
-      font-size: 14px;
+      padding:8px 12px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      background:#007bff;
+      color:white;
+      font-size:14px;
     }
+    .filtro-box button.secondary {
+      background:#6c757d;
+    }
+
+    #status { margin-bottom:10px; color:#555; font-size:14px; }
 
     .card {
       background: white;
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
     }
 
-    .altura { font-size: 20px; font-weight: bold; }
-    .time { font-size: 14px; opacity: .7; white-space: nowrap; }
+    .altura { font-size:18px; font-weight:700; color:#222; }
+    .time { font-size:13px; color:#666; margin-left:16px; white-space:nowrap; }
+
+    .empty {
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      color:#666;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    /* responsive */
+    @media (max-width:520px){
+      .filtro-box { flex-direction: column; align-items:flex-start; }
+      .card { flex-direction: column; align-items:flex-start; gap:8px; }
+      .time { white-space: normal; }
+    }
   </style>
 
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-
 <body>
   <h1>Jumps</h1>
 
-  <!-- FILTRO -->
   <div class="filtro-box">
-    <label>Início:</label>
-    <input type="datetime-local" id="inicio">
+    <div>
+      <label for="inicio">Início:</label><br/>
+      <input id="inicio" type="datetime-local" />
+    </div>
 
-    <label>Fim:</label>
-    <input type="datetime-local" id="fim">
+    <div>
+      <label for="fim">Fim:</label><br/>
+      <input id="fim" type="datetime-local" />
+    </div>
 
-    <button id="btnFiltrar">Filtrar</button>
+    <div style="display:flex;gap:8px; align-items:center;">
+      <button id="btnFiltrar">Filtrar</button>
+      <button id="btnLimpar" class="secondary">Limpar filtro</button>
+    </div>
   </div>
 
+  <div id="status">Carregando...</div>
   <div id="list"></div>
 
   <script>
+    // ========== Config Firebase ==========
     const firebaseConfig = {
       apiKey: "AIzaSyDHP_5rzA9YUTPnH0fWxturT4I2BRFMnAE",
       authDomain: "sistemasop-7043b.firebaseapp.com",
@@ -90,64 +114,120 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // elements
     const list = document.getElementById("list");
+    const status = document.getElementById("status");
     const inicioInput = document.getElementById("inicio");
     const fimInput = document.getElementById("fim");
     const btnFiltrar = document.getElementById("btnFiltrar");
+    const btnLimpar = document.getElementById("btnLimpar");
 
-    let fullData = {}; // Guarda todos os registros carregados
+    let fullData = {}; // todos os registros do Firebase
+    let lastRenderedCount = 0;
 
-    // LER DADOS DO FIREBASE
-    db.ref("jumps").on("value", (snap) => {
-      fullData = snap.val() || {};
-      renderList(fullData);
-    });
-
-    // FUNÇÃO PARA EXIBIR LISTA
-    function renderList(data) {
-      list.innerHTML = "";
-
-      Object.keys(data).forEach(id => {
-        const j = data[id];
-
-        // Convertendo a string "YYYY-MM-DD HH:MM:SS"
-        const date = new Date(j.time.replace(" ", "T"));
-        const formatted = isNaN(date) ? j.time : date.toLocaleString();
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-          <div class="altura">Altura: ${j.height} cm</div>
-          <div class="time">${formatted}</div>
-        `;
-
-        list.appendChild(card);
-      });
+    // ---------- util: parse time string from DB ("YYYY-MM-DD HH:MM:SS") to Date ----------
+    function parseFirebaseTime(str) {
+      if (!str) return null;
+      // first try simple replace space->T
+      const t1 = str.replace(" ", "T");
+      let d = new Date(t1);
+      if (!isNaN(d.getTime())) return d;
+      // fallback: parse components manually as local time
+      // expected: YYYY-MM-DD HH:MM:SS
+      const m = str.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (m) {
+        const [_, Y, Mo, Da, H, Mi, S] = m;
+        // monthIndex in Date is 0-based
+        return new Date(Number(Y), Number(Mo)-1, Number(Da), Number(H), Number(Mi), Number(S));
+      }
+      // last resort: Date(str)
+      d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
     }
 
-    // FILTRAR
-    btnFiltrar.addEventListener("click", () => {
-      const inicio = inicioInput.value ? new Date(inicioInput.value).getTime() : null;
-      const fim = fimInput.value ? new Date(fimInput.value).getTime() : null;
+    // ---------- render list (data is an object of nodes) ----------
+    function renderList(dataObj) {
+      list.innerHTML = "";
+      const keys = Object.keys(dataObj || {});
+      if (keys.length === 0) {
+        status.textContent = "Nenhum salto encontrado para os filtros atuais.";
+        list.innerHTML = `<div class="empty">Sem registros.</div>`;
+        lastRenderedCount = 0;
+        return;
+      }
 
-      const filtrado = {};
-
-      Object.keys(fullData).forEach(id => {
-        const j = fullData[id];
-        const t = new Date(j.time.replace(" ", "T")).getTime();
-
-        if (
-          (!inicio || t >= inicio) &&
-          (!fim || t <= fim)
-        ) {
-          filtrado[id] = j;
-        }
+      // sort by time ascending
+      const items = keys.map(k => {
+        const item = dataObj[k];
+        const date = parseFirebaseTime(item.time);
+        return { id: k, height: item.height, timeStr: item.time, dateObj: date };
+      }).sort((a,b) => {
+        const ta = a.dateObj ? a.dateObj.getTime() : 0;
+        const tb = b.dateObj ? b.dateObj.getTime() : 0;
+        return ta - tb;
       });
 
-      renderList(filtrado);
+      status.textContent = `Mostrando ${items.length} registro(s).`;
+
+      items.forEach(it => {
+        const row = document.createElement("div");
+        row.className = "card";
+
+        const heightCm = (typeof it.height === "number") ? it.height : Number(it.height || 0);
+        const heightText = `${heightCm} cm`;
+
+        const timeText = it.dateObj ? it.dateObj.toLocaleString() : it.timeStr;
+
+        row.innerHTML = `
+          <div class="altura">Altura: ${heightText}</div>
+          <div class="time">${timeText}</div>
+        `;
+        list.appendChild(row);
+      });
+
+      lastRenderedCount = items.length;
+    }
+
+    // ---------- apply filters (uses fullData) ----------
+    function applyFilterShow() {
+      // read inputs (datetime-local gives "YYYY-MM-DDTHH:MM")
+      const inicioVal = inicioInput.value;
+      const fimVal = fimInput.value;
+
+      const inicioTs = inicioVal ? new Date(inicioVal).getTime() : null;
+      const fimTs   = fimVal   ? new Date(fimVal).getTime()   : null;
+
+      // build filtered object
+      const filtered = {};
+      Object.keys(fullData).forEach(id => {
+        const j = fullData[id];
+        const d = parseFirebaseTime(j.time);
+        const t = d ? d.getTime() : null;
+
+        // if parse failed, exclude unless no filter set
+        if (t === null) {
+          if (inicioTs === null && fimTs === null) {
+            filtered[id] = j;
+          }
+          return;
+        }
+
+        const okStart = (inicioTs === null) || (t >= inicioTs);
+        const okEnd   = (fimTs === null)   || (t <= fimTs);
+
+        if (okStart && okEnd) filtered[id] = j;
+      });
+
+      renderList(filtered);
+    }
+
+    // ---------- events ----------
+    btnFiltrar.addEventListener("click", () => {
+      applyFilterShow();
     });
 
-  </script>
-</body>
-</html>
+    btnLimpar.addEventListener("click", () => {
+      inicioInput.value = "";
+      fimInput.value = "";
+      renderList(fullData);
+      status.textCon
