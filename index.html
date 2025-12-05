@@ -48,6 +48,7 @@
     const list = document.getElementById("list");
 
     db.ref("jumps").on("value", (snap) => {
+      console.log("RAW DATA:", snap.val());
       const data = snap.val();
       list.innerHTML = "";
       if (!data) return;
