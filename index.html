@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jumps Firebase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 { font-size: 28px; margin-bottom: 20px; }
+    .card {
+      background: white;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .altura { font-size: 20px; font-weight: bold; }
+    .time { font-size: 12px; opacity: .7; }
+  </style>
+</head>
+<body>
+  <h1>Jumps</h1>
+  <div id="list"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
+
+  <script>
+    // CONFIG FIREBASE
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      databaseURL: "SUA_DATABASE_URL",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const list = document.getElementById('list');
+
+    db.ref('jumps').on('value', (snapshot) => {
+      const data = snapshot.val();
+      list.innerHTML = "";
+      if (!data) return;
+
+      Object.keys(data).forEach(id => {
+        const j = data[id];
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="altura">Altura: ${j.altura} m</div>
+          <div class="time">Timestamp: ${new Date(j.timestamp).toLocaleString()}</div>
+        `;
+        list.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>
