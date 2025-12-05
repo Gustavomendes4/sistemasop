@@ -22,42 +22,31 @@
     .time { font-size: 12px; opacity: .7; }
   </style>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-
-<!-- Firebase Realtime Database -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-
-  
+  <!-- Firebase compat (100% sem erros de heartbeat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
   <h1>Jumps</h1>
   <div id="list"></div>
 
-  <script type="module">
-    import { initializeApp } 
-      from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-
-    import { 
-      getDatabase, ref, onValue 
-    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDHP_5rzA9YUTPnH0fWxturT4I2BRFMnAE",
       authDomain: "sistemasop-7043b.firebaseapp.com",
       databaseURL: "https://sistemasop-7043b-default-rtdb.firebaseio.com",
       projectId: "sistemasop-7043b",
-      storageBucket: "sistemasop-7043b.appspot.com", /* CORRIGIDO */
+      storageBucket: "sistemasop-7043b.appspot.com",
       messagingSenderId: "125029414345",
       appId: "1:125029414345:web:62b471910b8ddbbdb8e418"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const list = document.getElementById("list");
 
-    const jumpsRef = ref(db, "jumps");
-    onValue(jumpsRef, (snapshot) => {
+    db.ref("jumps").on("value", (snapshot) => {
       const data = snapshot.val();
       list.innerHTML = "";
       if (!data) return;
