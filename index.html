@@ -23,7 +23,6 @@
     .time { font-size: 12px; opacity: .7; }
   </style>
 
-  <!-- Firebase compat (FUNCIONA EM SCRIPT NORMAL) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
@@ -48,7 +47,6 @@
     const list = document.getElementById("list");
 
     db.ref("jumps").on("value", (snap) => {
-      console.log("RAW DATA:", snap.val());
       const data = snap.val();
       list.innerHTML = "";
       if (!data) return;
@@ -56,17 +54,16 @@
       Object.keys(data).forEach(id => {
         const j = data[id];
 
-        // Corrige formato de data (string "2025-12-05 05:37:11")
-        let dateStr = j.time.replace(" ", "T");
-        let dateObj = new Date(dateStr);
-        let formattedTime = isNaN(dateObj.getTime()) ? j.time : dateObj.toLocaleString();
+        // Converter "2025-12-05 05:25:00" para formato válido
+        const date = new Date(j.time.replace(" ", "T"));
+        const formatted = isNaN(date) ? j.time : date.toLocaleString();
 
         const card = document.createElement("div");
         card.className = "card";
 
         card.innerHTML = `
           <div class="altura">Altura: ${j.height} m</div>
-          <div class="time">Timestamp: ${formattedTime}</div>
+          <div class="time">Timestamp: ${formatted}</div>
         `;
 
         list.appendChild(card);
